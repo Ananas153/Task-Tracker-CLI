@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>nam.nam</groupId>
+    <artifactId>Task-Tracker-CLI</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>22</maven.compiler.source>
+        <maven.compiler.target>22</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- JSON library -->
+        <!--<dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.16.1</version>
+        </dependency> -->
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <!-- plugins to build an executable JAR file
+                 All .java file must be Compiled to .class file then Packaged into .jar file
+                  Doesn't contain the Dependencies so need another plugins to do so -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <!-- specify that we want to use the main() method of this class to run-->
+                            <mainClass>nam.nam.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>nam.nam.Main</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <!-- The <execution> block tells Maven when and how to run a plugin.
+                    Without it, Maven knows the plugin exists, but doesn’t actually execute
+                    any of its goals automatically during the build.-->
+
+                    <!-- execution block needed here because maven-assembly-plugin
+                     is not bound to any phase by default. Unlike the maven-jar-plugin
+                     that is already part of Maven’s default build plan. So it doesn't
+                     need an execution block -->
+                    <execution>
+                        <id>make-assembly</id>         <!-- Just a name for this execution -->
+                        <phase>package</phase>         <!-- Run at phase package -->
+                        <goals>
+                            <!-- Each plugin has one or more goals,
+                            which are like “commands” that plugin can perform. The
+                            single goal builds one archive (e.g., JAR with dependencies) -->
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
