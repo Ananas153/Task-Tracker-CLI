@@ -25,6 +25,11 @@ public class Main {
                 }
                 break;
             case "update":
+                try{
+                    updateTask(Integer.parseInt(args[1]), args[2]);
+                }catch (NumberFormatException numberFormatException){
+                    throw new NumberFormatException();
+                }
                 break;
             case "delete":
                 break;
@@ -139,4 +144,39 @@ public class Main {
         return tasks;
     }
 
+    public static void updateTask(int id, String description){
+        if(id <= 0) {
+            System.out.println("Operation Failed, there's no item id = 0 or negative value");
+        }
+        String content = readFileContent(FILE_PATH);
+        String[] objects = splitIntoObjects(content);
+
+        if (id > objects.length) {
+            System.out.println("Operation Failed, ID not found in list.");
+            return;
+        }
+
+        Task updatedTask = parseSingleTask(objects[id-1]);
+        updatedTask.setDescription(description);
+        // Replace in array String objects
+        objects[id-1] = updatedTask.toJSON().replace("{", "").replace("}", "");
+
+        // Rebuild the JSON array
+        StringBuilder newJson = new StringBuilder("[\n");
+        for (int i = 0; i < objects.length; i++) {
+            newJson.append(objects[i]);
+            if (i < objects.length - 1){
+                newJson.append("},\n{");
+            }
+        }
+        newJson.append("\n]");
+        // Write back to file
+        try{
+            Path path = Path.of(FILE_PATH);
+            Files.writeString(path, newJson);
+            System.out.println("Task updated successfully.");
+        }catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
