@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Main {
     private static final String FILE_PATH = "C:/Users/ngoth/Desktop/Task-Tracker-CLI/src/main/resources/TODO_List.json";
@@ -25,13 +27,18 @@ public class Main {
                 }
                 break;
             case "update":
-                try{
+                try {
                     updateTask(Integer.parseInt(args[1]), args[2]);
-                }catch (NumberFormatException numberFormatException){
+                } catch (NumberFormatException numberFormatException) {
                     throw new NumberFormatException();
                 }
                 break;
             case "delete":
+                try{
+                    deleteTask(Integer.parseInt(args[1]));
+                }catch(NumberFormatException numberFormatException){
+                    throw new NumberFormatException();
+                }
                 break;
             default:
                 System.out.println("Unknown Command, Bye Bye <3");
@@ -144,9 +151,10 @@ public class Main {
         return tasks;
     }
 
-    public static void updateTask(int id, String description){
-        if(id <= 0) {
-            System.out.println("Operation Failed, there's no item id = 0 or negative value");
+    public static void updateTask(int id, String description) {
+        if (id <= 0) {
+            System.out.println("Operation Failed, there's no item id = 0 or negative ID value");
+            return;
         }
         String content = readFileContent(FILE_PATH);
         String[] objects = splitIntoObjects(content);
@@ -156,26 +164,62 @@ public class Main {
             return;
         }
 
-        Task updatedTask = parseSingleTask(objects[id-1]);
+        Task updatedTask = parseSingleTask(objects[id - 1]);
         updatedTask.setDescription(description);
         // Replace in array String objects
-        objects[id-1] = updatedTask.toJSON().replace("{", "").replace("}", "");
+        objects[id - 1] = updatedTask.toJSON().replace("{", "").replace("}", "\n");
 
         // Rebuild the JSON array
         StringBuilder newJson = new StringBuilder("[\n");
         for (int i = 0; i < objects.length; i++) {
             newJson.append(objects[i]);
-            if (i < objects.length - 1){
+            if (i < objects.length - 1) {
                 newJson.append("},\n{");
             }
         }
         newJson.append("\n]");
         // Write back to file
-        try{
+        try {
             Path path = Path.of(FILE_PATH);
             Files.writeString(path, newJson);
             System.out.println("Task updated successfully.");
-        }catch (IOException e) {
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean deleteTask(int id) {
+        if (id <= 0) {
+            System.out.println("Operation Failed, there's no item id = 0 or negative ID value");
+            return false;
+        }
+        String content = readFileContent(FILE_PATH);
+        String[] objects = splitIntoObjects(content);
+
+        if (id > objects.length) {
+            System.out.println("Operation Failed, ID not found in list.");
+            return false;
+        }
+
+        List<String> list = new ArrayList<>(Arrays.asList(objects));
+        //Remove the task (id - 1 because arrays are 0-based)
+        list.remove(id - 1);
+
+        StringBuilder newJson = new StringBuilder("[\n");
+        for (int i = 0; i < list.size(); i++) {
+            newJson.append(list.get(i));
+            if (i < list.size() - 1){
+                newJson.append("},\n{");
+            }
+        }
+        newJson.append("\n]");
+
+        try {
+            Path path = Path.of(FILE_PATH);
+            Files.writeString(path, newJson);
+            System.out.println("Task deleted successfully.");
+            return true;
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
