@@ -2,6 +2,6 @@ package nam.nam;
 
 public enum Status{
     todo,
-    in_progres,
+    in_progress,
     done
 }

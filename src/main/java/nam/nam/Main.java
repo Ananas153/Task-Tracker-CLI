@@ -34,12 +34,18 @@ public class Main {
                 }
                 break;
             case "delete":
-                try{
+                try {
                     deleteTask(Integer.parseInt(args[1]));
-                }catch(NumberFormatException numberFormatException){
+                } catch (NumberFormatException numberFormatException) {
                     throw new NumberFormatException();
                 }
                 break;
+            case "mark-in-progress":
+                try{
+                    markInProg(Integer.parseInt(args[1]));
+                } catch (NumberFormatException numberFormatException) {
+                    throw new NumberFormatException();
+                }
             default:
                 System.out.println("Unknown Command, Bye Bye <3");
         }
@@ -151,6 +157,7 @@ public class Main {
         return tasks;
     }
 
+    // doesn't work well with the first element of the table
     public static void updateTask(int id, String description) {
         if (id <= 0) {
             System.out.println("Operation Failed, there's no item id = 0 or negative ID value");
@@ -188,6 +195,7 @@ public class Main {
         }
     }
 
+    // doesn't work well with the first element of the table
     public static boolean deleteTask(int id) {
         if (id <= 0) {
             System.out.println("Operation Failed, there's no item id = 0 or negative ID value");
@@ -208,7 +216,7 @@ public class Main {
         StringBuilder newJson = new StringBuilder("[\n");
         for (int i = 0; i < list.size(); i++) {
             newJson.append(list.get(i));
-            if (i < list.size() - 1){
+            if (i < list.size() - 1) {
                 newJson.append("},\n{");
             }
         }
@@ -218,6 +226,45 @@ public class Main {
             Path path = Path.of(FILE_PATH);
             Files.writeString(path, newJson);
             System.out.println("Task deleted successfully.");
+            return true;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // doesn't work well with the first element of the table
+    public static boolean markInProg(int id) {
+        if (id <= 0) {
+            System.out.println("Operation Failed, there's no item id = 0 or negative ID value");
+            return false;
+        }
+        String content = readFileContent(FILE_PATH);
+        String[] objects = splitIntoObjects(content);
+
+        if (id > objects.length) {
+            System.out.println("Operation Failed, ID not found in list.");
+            return false;
+        }
+
+        Task inProgTask = parseSingleTask(objects[id - 1]);
+        inProgTask.setDescription(Status.in_progress.name());
+        // Replace in array String objects
+        objects[id - 1] = inProgTask.toJSON().replace("{", "").replace("}", "\n");
+
+        // Rebuild the JSON array
+        StringBuilder newJson = new StringBuilder("[\n");
+        for (int i = 0; i < objects.length; i++) {
+            newJson.append(objects[i]);
+            if (i < objects.length - 1) {
+                newJson.append("},\n{");
+            }
+        }
+        newJson.append("\n]");
+        // Write back to file
+        try {
+            Path path = Path.of(FILE_PATH);
+            Files.writeString(path, newJson);
+            System.out.println("Task updated successfully.");
             return true;
         } catch (IOException e) {
             throw new RuntimeException(e);
